@@ -1,25 +1,41 @@
 package main
 
 import (
-	"encoding/json"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync/atomic"
+
+	"github.com/gcancel/chirpy/internal/database"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type apiConfig struct {
 	fileserverHits atomic.Int32
+	dbQueries      *database.Queries
 }
 
 func main() {
 
-	fmt.Println("Starting Http Server...")
-	var config apiConfig
+	const port = "8080"
+	const filePathDir = "."
 
+	godotenv.Load()
+	db_url := os.Getenv("DB_URL")
+	db, err := sql.Open("postgres", db_url)
+	if err != nil {
+		log.Fatal("Error connecting to Database.", err)
+	}
+	dbQueries := database.New(db)
+	config := apiConfig{dbQueries: dbQueries}
+
+	fmt.Println("Starting Http Server...")
 	mux := http.NewServeMux()
 
-	fileserverHandler := http.StripPrefix("/app/", http.FileServer(http.Dir(".")))
+	fileserverHandler := http.StripPrefix("/app/", http.FileServer(http.Dir(filePathDir)))
 	mux.Handle("/app/", config.middlewareMetricsInc(fileserverHandler))
 	mux.Handle("/assets", http.FileServer(http.Dir("./assets/")))
 
@@ -31,50 +47,11 @@ func main() {
 
 	srv := &http.Server{
 		Handler: mux,
-		Addr:    ":8080",
+		Addr:    ":" + port,
 	}
 
 	// spinning up server
 	fmt.Printf("Server running on http://localhost%v\n", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
-
-}
-
-func handleChirp(w http.ResponseWriter, req *http.Request) {
-
-	w.Header().Set("Content-Type:", "application/json")
-
-	type parameters struct {
-		Body  string `json:"body"`
-		Error string `json:"error"`
-		Valid bool   `json:"valid"`
-	}
-
-	var response parameters
-	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(&response)
-	if err != nil {
-		response.Error = fmt.Sprintf("Error decoding json. %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(response.Error))
-		return
-	}
-
-	if len(response.Body) > 140 {
-		response.Error = "Chirp is too long"
-		w.WriteHeader(400)
-		w.Write([]byte(response.Error))
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	response.Valid = true
-
-	data, err := json.Marshal(response)
-	if err != nil {
-		response.Error = "Error marshalling data."
-		w.WriteHeader(500)
-		return
-	}
-	w.Write(data)
 
 }
