@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -27,8 +28,17 @@ func (cfg *apiConfig) handleMetrics(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte(message))
 }
 func (cfg *apiConfig) handleReset(w http.ResponseWriter, req *http.Request) {
+	if cfg.platform != "dev" {
+		respondWithError(w, http.StatusForbidden, "Not Allowed", fmt.Errorf("forbidden action"))
+		return
+	}
+	ctx := context.Background()
 	cfg.fileserverHits.Store(0)
+	err := cfg.dbQueries.DeleteAllUsers(ctx)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error clearing users table.", err)
+	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hits reset!"))
+	w.Write([]byte("Hits reset!\nUsers Database cleared!"))
 }
