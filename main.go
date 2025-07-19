@@ -17,6 +17,7 @@ type apiConfig struct {
 	fileserverHits atomic.Int32
 	dbQueries      *database.Queries
 	platform       string
+	secretToken    string
 }
 
 func main() {
@@ -24,17 +25,15 @@ func main() {
 	const port = "8080"
 	const filePathDir = "."
 
-	// reading .env parameters
 	godotenv.Load()
 	db_url := os.Getenv("DB_URL")
 
-	// connecting to database
 	db, err := sql.Open("postgres", db_url)
 	if err != nil {
 		log.Fatal("Error connecting to Database.", err)
 	}
 	dbQueries := database.New(db)
-	config := apiConfig{dbQueries: dbQueries, platform: os.Getenv("PLATFORM")}
+	config := apiConfig{dbQueries: dbQueries, platform: os.Getenv("PLATFORM"), secretToken: os.Getenv("SECRET_TOKEN")}
 
 	fmt.Println("Starting Http Server...")
 	mux := http.NewServeMux()
@@ -47,15 +46,17 @@ func main() {
 	mux.HandleFunc("GET /api/healthz", handleReadiness)
 	mux.HandleFunc("GET /admin/metrics", config.handleMetrics)
 	mux.HandleFunc("POST /admin/reset", config.handleReset)
-	mux.HandleFunc("POST /api/chirps", handleChirp)
-	mux.HandleFunc("POST /api/users", config.handleUsers)
+	mux.HandleFunc("POST /api/chirps", config.handleChirpsCreate)
+	mux.HandleFunc("GET /api/chirps", config.handleGetChirps)
+	mux.HandleFunc("GET /api/chirps/{chirpID}", config.handleGetUserChirp)
+	mux.HandleFunc("POST /api/users", config.handleUsersCreate)
+	mux.HandleFunc("POST /api/login", config.handleLogin)
 
 	srv := &http.Server{
 		Handler: mux,
 		Addr:    ":" + port,
 	}
 
-	// spinning up server
 	fmt.Printf("Server running on http://localhost%v\n", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
 

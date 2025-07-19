@@ -37,3 +37,28 @@ content-type: "application/json"
 {
   "email": "gmartin9892@gmail.com"
 }
+
+###
+POST http://localhost:8080/api/chirps HTTP/1.1
+content-type: "application/json"
+
+{
+  "body": "If you're committed enough, you can make any story work."
+}
+
+###
+GET http://localhost:8080/api/chirps HTTP/1.1
+content-type: "application/json"
+
+###
+GET http://localhost:8080/api/chirps/d4412639-bf06-4467-88da-dc3118ad641f HTTP/1.1
+content-type: "application/json"
+
+###
+POST http://localhost:8080/api/login HTTP/1.1
+content-type: "application/json"
+
+{
+  "email": "saul@bettercall.com",
+  "password": "123456"
+}
