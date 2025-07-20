@@ -35,12 +35,14 @@ POST http://localhost:8080/api/users HTTP/1.1
 content-type: "application/json"
 
 {
-  "email": "gmartin9892@gmail.com"
+  "email": "gmartin9892@gmail.com",
+  "password": "123askme"
 }
 
 ###
 POST http://localhost:8080/api/chirps HTTP/1.1
 content-type: "application/json"
+authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjaGlycHktYWNjZXNzIiwic3ViIjoiMmFkZGUxZWItMDhkZC00NTdhLTkwMWUtZTE1ODQ2NmVmZmRmIiwiZXhwIjoxNzUzMDU0NjcwLCJpYXQiOjE3NTMwNTEwNzB9.Gl-qkJsgWcaNBz3mD_2-YaaT439tzo1eKinlsL7hKXc"
 
 {
   "body": "If you're committed enough, you can make any story work."
@@ -62,3 +64,16 @@ content-type: "application/json"
   "email": "saul@bettercall.com",
   "password": "123456"
 }
+###
+POST http://localhost:8080/api/login HTTP/1.1
+content-type: "application/json"
+
+{
+  "email": "gmartin9892@gmail.com",
+  "password": "123askme"
+}
+
+###
+POST http://localhost:8080/api/refresh HTTP/1.1
+authorization: "Bearer d493f7244c4187ca70011708b646fc3f9b1534f977dad6dfa8e826449bbeb2fd2025"
+

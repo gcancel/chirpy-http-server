@@ -11,7 +11,6 @@ import (
 )
 
 func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, req *http.Request) {
-
 	w.Header().Set("Content-Type:", "application/json")
 
 	type parameters struct {

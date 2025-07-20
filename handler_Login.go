@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"github.com/gcancel/chirpy/internal/auth"
+	"github.com/gcancel/chirpy/internal/database"
 )
 
 func (cfg *apiConfig) handleLogin(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	type parameters struct {
-		Email            string
-		Password         string
-		ExpiresInSeconds int `json:"expires_in_seconds"`
+		Email    string
+		Password string
 	}
 
 	type response struct {
@@ -44,13 +44,27 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, req *http.Request) {
 
 	// setting default expiration time for token
 	expiresIn := time.Hour
-	if loginInfo.ExpiresInSeconds > 0 && loginInfo.ExpiresInSeconds < 3600 {
-		expiresIn = time.Duration(loginInfo.ExpiresInSeconds) * time.Second
-	}
-
 	token, err := auth.MakeJWT(user.ID, cfg.secretToken, time.Duration(expiresIn))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "error creating JWT token", err)
+		return
+	}
+
+	refreshToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "error generating refresh token", err)
+		return
+	}
+
+	// refresh token expires in 60 days
+	refreshTokenExpirationTime := (24 * time.Hour) * 60
+	storedToken, err := cfg.dbQueries.CreateRefreshToken(req.Context(), database.CreateRefreshTokenParams{
+		Token:     refreshToken,
+		UserID:    user.ID,
+		ExpiresAt: time.Now().Add(refreshTokenExpirationTime),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "error while storing refresh token", err)
 		return
 	}
 
@@ -62,7 +76,8 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, req *http.Request) {
 			UpdatedAt: user.UpdatedAt,
 			Email:     user.Email,
 		},
-		Token: token,
+		Token:        token,
+		RefreshToken: storedToken.Token,
 	})
 	fmt.Printf("Login Successful. User: %v\n", user.Email)
 
