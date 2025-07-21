@@ -99,7 +99,7 @@ func (cfg *apiConfig) handleGetUserChirp(w http.ResponseWriter, req *http.Reques
 
 	chirp, err := cfg.dbQueries.GetChirp(req.Context(), chirpID)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "error retrieving chirp", err)
+		respondWithError(w, http.StatusNotFound, "error retrieving chirp", err)
 		return
 	}
 

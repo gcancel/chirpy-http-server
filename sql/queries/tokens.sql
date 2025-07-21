@@ -13,6 +13,14 @@ VALUES(
 SELECT * FROM refresh_tokens
 WHERE token = $1 LIMIT 1;
 
+-- name: GetUserFromRefreshToken :one
+SELECT users.* from users
+JOIN refresh_tokens
+ON users.id = refresh_tokens.user_id
+WHERE refresh_tokens.token = $1 AND
+refresh_tokens.revoked_at IS NULL AND
+refresh_tokens.expires_at > NOW() LIMIT 1;
+
 -- name: RevokeRefreshToken :one
 UPDATE refresh_tokens
 SET revoked_at = NOW(), updated_at = NOW()

@@ -106,3 +106,27 @@ func (q *Queries) GetChirp(ctx context.Context, id uuid.UUID) (Chirp, error) {
 	)
 	return i, err
 }
+
+const getChirpByUser = `-- name: GetChirpByUser :one
+SELECT id, created_at, updated_at, body, user_id FROM chirps
+WHERE user_id = $1 AND id = $2 
+LIMIT 1
+`
+
+type GetChirpByUserParams struct {
+	UserID uuid.UUID
+	ID     uuid.UUID
+}
+
+func (q *Queries) GetChirpByUser(ctx context.Context, arg GetChirpByUserParams) (Chirp, error) {
+	row := q.db.QueryRowContext(ctx, getChirpByUser, arg.UserID, arg.ID)
+	var i Chirp
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Body,
+		&i.UserID,
+	)
+	return i, err
+}

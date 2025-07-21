@@ -75,5 +75,14 @@ content-type: "application/json"
 
 ###
 POST http://localhost:8080/api/refresh HTTP/1.1
-authorization: "Bearer d493f7244c4187ca70011708b646fc3f9b1534f977dad6dfa8e826449bbeb2fd2025"
+authorization:
+
+### 
+PUT http://locahost:8080/api/users HTTP/1.1
+content-type:  "application/json"
+
+{
+  "email": "walter@breakingbad.com",
+  "password": "losPollosHermanos"
+}
 

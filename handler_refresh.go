@@ -25,7 +25,7 @@ func (cfg *apiConfig) handleRefresh(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// confusing, but will check if the value stored in RevokedAt is not a null value...
+	// confusing, but will check if the value stored in RevokedAt is not a null
 	if storedToken.RevokedAt.Valid {
 		respondWithError(w, http.StatusUnauthorized, "token revoked", err)
 		return
@@ -49,6 +49,10 @@ func (cfg *apiConfig) handleRefresh(w http.ResponseWriter, req *http.Request) {
 }
 
 func (cfg *apiConfig) handleRevoke(w http.ResponseWriter, req *http.Request) {
+	type response struct {
+		//
+	}
+
 	token, err := auth.GetBearerToken(req.Header)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "bearer token not found", err)
@@ -61,5 +65,5 @@ func (cfg *apiConfig) handleRevoke(w http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Printf("Revoked Token: %v", revoked.Token)
 
-	w.WriteHeader(http.StatusNoContent)
+	respondWithJSON(w, http.StatusNoContent, response{})
 }

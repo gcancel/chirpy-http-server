@@ -16,6 +16,11 @@ ORDER BY created_at;
 SELECT * FROM chirps
 WHERE id = $1 LIMIT 1;
 
+-- name: GetChirpByUser :one
+SELECT * FROM chirps
+WHERE user_id = $1 AND id = $2 
+LIMIT 1;
+
 -- name: DeleteChirp :exec
 DELETE FROM chirps
 WHERE user_id = $1 AND id = $2;
