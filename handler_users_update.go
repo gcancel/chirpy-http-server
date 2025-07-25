@@ -17,8 +17,9 @@ func (cfg *apiConfig) handleUpdateUser(w http.ResponseWriter, req *http.Request)
 	}
 
 	type response struct {
-		Email  string    `json:"email"`
-		UserID uuid.UUID `json:"user_id"`
+		Email       string    `json:"email"`
+		UserID      uuid.UUID `json:"user_id"`
+		IsChirpyRed bool      `json:"is_chirp_red"`
 	}
 
 	token, err := auth.GetBearerToken(req.Header)
@@ -54,8 +55,9 @@ func (cfg *apiConfig) handleUpdateUser(w http.ResponseWriter, req *http.Request)
 	}
 
 	respondWithJSON(w, http.StatusOK, response{
-		Email:  updatedUser.Email,
-		UserID: updatedUser.ID,
+		Email:       updatedUser.Email,
+		UserID:      updatedUser.ID,
+		IsChirpyRed: updatedUser.IsChirpyRed,
 	})
 
 }

@@ -18,6 +18,7 @@ type apiConfig struct {
 	dbQueries      *database.Queries
 	platform       string
 	secretToken    string
+	polkaAPIKey    string
 }
 
 func main() {
@@ -33,7 +34,7 @@ func main() {
 		log.Fatal("Error connecting to Database.", err)
 	}
 	dbQueries := database.New(db)
-	config := apiConfig{dbQueries: dbQueries, platform: os.Getenv("PLATFORM"), secretToken: os.Getenv("SECRET_TOKEN")}
+	config := apiConfig{dbQueries: dbQueries, platform: os.Getenv("PLATFORM"), secretToken: os.Getenv("SECRET_TOKEN"), polkaAPIKey: os.Getenv("POLKA_KEY")}
 
 	fmt.Println("Starting Http Server...")
 	mux := http.NewServeMux()
@@ -55,6 +56,7 @@ func main() {
 	mux.HandleFunc("POST /api/login", config.handleLogin)
 	mux.HandleFunc("POST /api/refresh", config.handleRefresh)
 	mux.HandleFunc("POST /api/revoke", config.handleRevoke)
+	mux.HandleFunc("POST /api/polka/webhooks", config.handlePolkaHook)
 
 	srv := &http.Server{
 		Handler: mux,

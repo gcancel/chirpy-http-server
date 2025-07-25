@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/gcancel/chirpy/internal/auth"
 	"github.com/gcancel/chirpy/internal/database"
@@ -67,24 +68,34 @@ func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, req *http.Reques
 func (cfg *apiConfig) handleGetChirps(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type:", "application/json")
 
-	chirps, err := cfg.dbQueries.GetAllChirps(req.Context())
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "error retrieving chirps", err)
+	authorParam := req.URL.Query().Get("author_id")
+	sortParam := req.URL.Query().Get("sort")
+	if authorParam != "" {
+		authorID, err := uuid.Parse(authorParam)
+		if err != nil {
+			respondWithError(w, http.StatusNotFound, "error parsing author ID", err)
+			return
+		}
+
+		chirps, err := cfg.dbQueries.GetChirpByUser(req.Context(), authorID)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "error retrieving chirps from database", err)
+			return
+		}
+		chirpResults := createChirpSlice(chirps, sortParam)
+		respondWithJSON(w, http.StatusOK, chirpResults)
+		return
+	} else {
+		chirps, err := cfg.dbQueries.GetAllChirps(req.Context())
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "error retrieving chirps", err)
+			return
+		}
+		chirpResults := createChirpSlice(chirps, sortParam)
+		respondWithJSON(w, http.StatusOK, chirpResults)
 		return
 	}
 
-	chirpSlice := make([]Chirp, 0)
-	for _, chirp := range chirps {
-		chirpSlice = append(chirpSlice, Chirp{
-			Id:        chirp.ID,
-			CreatedAt: chirp.CreatedAt,
-			UpdatedAt: chirp.UpdatedAt,
-			Body:      chirp.Body,
-			UserID:    chirp.UserID,
-		})
-	}
-
-	respondWithJSON(w, http.StatusOK, chirpSlice)
 }
 
 func (cfg *apiConfig) handleGetUserChirp(w http.ResponseWriter, req *http.Request) {
@@ -110,4 +121,21 @@ func (cfg *apiConfig) handleGetUserChirp(w http.ResponseWriter, req *http.Reques
 		Body:      chirp.Body,
 		UserID:    chirp.UserID,
 	})
+}
+
+func createChirpSlice(chirps []database.Chirp, order string) []Chirp {
+	chirpSlice := make([]Chirp, 0)
+	for _, chirp := range chirps {
+		chirpSlice = append(chirpSlice, Chirp{
+			Id:        chirp.ID,
+			CreatedAt: chirp.CreatedAt,
+			UpdatedAt: chirp.UpdatedAt,
+			Body:      chirp.Body,
+			UserID:    chirp.UserID,
+		})
+	}
+	if order == "desc" {
+		sort.Slice(chirpSlice, func(i, j int) bool { return chirpSlice[i].CreatedAt.After(chirpSlice[j].CreatedAt) })
+	}
+	return chirpSlice
 }

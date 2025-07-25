@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gcancel/chirpy/internal/auth"
-	"github.com/gcancel/chirpy/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -43,10 +42,7 @@ func (cfg *apiConfig) handleChirpDelete(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	err = cfg.dbQueries.DeleteChirp(req.Context(), database.DeleteChirpParams{
-		UserID: chirp.UserID,
-		ID:     chirp.ID,
-	})
+	err = cfg.dbQueries.DeleteChirp(req.Context(), chirpID)
 	if err != nil {
 		respondWithError(w, http.StatusNotFound, "chirp not found", err)
 		return

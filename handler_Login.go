@@ -71,10 +71,11 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, req *http.Request) {
 	fmt.Println(loginInfo)
 	respondWithJSON(w, http.StatusOK, response{
 		User: User{
-			Id:        user.ID,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			Email:     user.Email,
+			Id:          user.ID,
+			CreatedAt:   user.CreatedAt,
+			UpdatedAt:   user.UpdatedAt,
+			Email:       user.Email,
+			IsChirpyRed: user.IsChirpyRed,
 		},
 		Token:        token,
 		RefreshToken: storedToken.Token,

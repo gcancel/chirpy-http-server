@@ -39,10 +39,11 @@ func (cfg *apiConfig) handleUsersCreate(w http.ResponseWriter, req *http.Request
 		return
 	}
 	respondWithJSON(w, http.StatusCreated, User{
-		Id:        user.ID,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
+		Id:          user.ID,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	})
 	fmt.Printf("User added to database: %v", user.Email)
 
